@@ -16,13 +16,23 @@ class _LandingViewState extends State<LandingView> {
   TextEditingController usercon = TextEditingController();
 
   final gptusers = FirebaseFirestore.instance.collection('gptusers');
+
+  bool loading = false;
  
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: backgroundClr,
-      body: Column(
+      body: loading == true
+      ? SizedBox(
+        height: double.infinity,
+        width: double.infinity,
+        child: Center(
+          child: CircularProgressIndicator(),
+        ),
+      ) 
+      : Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -66,12 +76,16 @@ class _LandingViewState extends State<LandingView> {
             : ElevatedButton(
               child: Text('Submit'),
               onPressed: () async {
+                setState(() {
+                  loading = true;
+                });
                 await FirebaseAuth.instance.signInAnonymously();
                 // await FirebaseAuth.instance.;
                 await gptusers.doc(FirebaseAuth.instance.currentUser?.uid).set({
                   'user': usercon.text
                 }).whenComplete(() {
-                  if(mounted){
+                  loading = false;
+                  if(context.mounted){
                     Navigator.push(context, MaterialPageRoute(builder: (context) => HomeView(user: usercon.text),));
                   }
                 });
