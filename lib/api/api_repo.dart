@@ -23,21 +23,6 @@ class ApiRepo {
         ) 
       );
       if (res.statusCode == 200) {
-        // debugPrint('Parsed API Response: ${res.body}');
-        // var data = jsonDecode(res.body);
-        // var promptModel = PromptModel.fromJson(data);
-        // debugPrint('Parsed API Response: ${promptModel.toString()}');
-
-        // if (promptModel.candidates != null &&
-        //     promptModel.candidates!.isNotEmpty &&
-        //     promptModel.candidates![0].parts != null &&
-        //     promptModel.candidates![0].parts!.isNotEmpty &&
-        //     promptModel.candidates![0].parts![0].text != null) {
-        //   return promptModel.candidates![0].parts![0].text!;
-        // } else {
-        //   debugPrint("Could not extract text from API response structure: $data");
-        //   return "Error: Could not parse response content.";
-        // }
         var data =  json.decode(res.body);
         return data['candidates'][0]['content']['parts'][0]['text'].toString();
       } else {
@@ -47,5 +32,36 @@ class ApiRepo {
     } on Exception catch (e) {
       return e.toString();
     }
+  }
+
+  Future<String> getSuggestions(partialText) async {
+    try {
+      final prompt = "Given the partial text '$partialText', provide 8-10 concise, comma-separated suggestions to complete the thought or query. Focus on common continuations or related topics. Do not number or list the suggestions; just provide the comma-separated string. Example: 'benefits of AI, challenges of AI, applications of AI'";
+      final res = await http.post(
+        Uri.parse(baseurl),
+        body: jsonEncode(
+          {
+            "contents": [
+              {
+                "parts": [
+                  {"text": prompt},
+                ],
+              },
+            ],
+          },
+        ) 
+      );
+      if (res.statusCode == 200) {
+        var data =  json.decode(res.body);
+        // var suggestions = 
+        return data['candidates'][0]['content']['parts'][0]['text'].toString();
+      } else {
+        debugPrint("API request failed with status: ${res.statusCode}, body: ${res.body}");
+        return "Error: API request failed (${res.statusCode}).";
+      }
+    } on Exception catch (e) {
+      return e.toString();
+    }
+
   }
 }

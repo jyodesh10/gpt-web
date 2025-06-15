@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -28,7 +30,10 @@ class _HomeViewState extends State<HomeView> {
   bool loading = false;
   String output = '';
   List<Map> history = [];
+  List suggestionsList = [];
   String currentUser = "";
+  Timer? debounceTimer; // Declare a Timer variable
+  final Duration debounceDuration = Duration(milliseconds: 500);
 
   runPrompt(val) async {
     setState(() {
@@ -78,6 +83,23 @@ class _HomeViewState extends State<HomeView> {
       text: newText,
       selection: TextSelection.collapsed(offset: currentSelection.start + 1),
     );
+  }
+
+  getsuggestions(String value) {
+    if (debounceTimer?.isActive ?? false) {
+      debounceTimer!.cancel();
+    }
+    if (value.trim().length > 2) {
+      debounceTimer = Timer(debounceDuration, () async {
+        String result = await ApiRepo().getSuggestions(value);
+        List<String> suggestion = result.split(",").map((e) => e).toList();
+        setState(() {
+          suggestion.removeAt(suggestion.length-1);
+          suggestionsList = suggestion;
+        });
+
+      });
+    }
   }
 
   late final Map<ShortcutActivator, Intent> _shortcuts;
@@ -143,7 +165,7 @@ class _HomeViewState extends State<HomeView> {
                         children: [
                           loading
                               ? SizedBox(
-                                  height: deviceHeight * 0.7,
+                                  height: deviceHeight * 0.65,
                                   child: Center(child: CircularProgressIndicator()),
                                 )
                               : Expanded(
@@ -243,7 +265,6 @@ class _HomeViewState extends State<HomeView> {
                                           ],
                                         ),
                                 ),
-                          // textfield
                           output != ""
                             ? Padding(
                               padding: EdgeInsets.symmetric(horizontal: deviceWidth*.1 ),
@@ -261,21 +282,27 @@ class _HomeViewState extends State<HomeView> {
                                     spacing: 10,
                                     runAlignment: WrapAlignment.start,
                                     crossAxisAlignment: WrapCrossAlignment.start,
-                                    children: [
-                                      Container(
-                                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                        decoration: BoxDecoration(
+                                    children: List.generate(suggestionsList.length, (index) {
+                                      return MaterialButton(
+                                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                                        elevation: 1,
+                                        color: white.withValues(alpha: 0.14),
+                                        shape: RoundedSuperellipseBorder(
                                           borderRadius: BorderRadius.circular(20),
-                                          color: backgroundClrLight
                                         ),
-                                        child: Text("Lorem Ipsom", style: TextStyle(color: white),),
-                                      ),
-                                    ],
+                                        child: Text(suggestionsList[index], style: TextStyle(color: white),),
+                                        onPressed: () {
+                                          prompt.text = "${prompt.text} ${suggestionsList[index]}";
+                                          getsuggestions(prompt.text);
+                                        }
+                                      );
+                                    })
                                   )
                                 ],
                               ),
                             )
                             : SizedBox(),   
+                          // textfield
                           Expanded(
                             child: Column(
                               mainAxisAlignment: output != ''
@@ -284,7 +311,7 @@ class _HomeViewState extends State<HomeView> {
                               children: [
                                 SizedBox(
                                   width: deviceWidth * 0.55,
-                                  height: deviceHeight * 0.20,
+                                  height: deviceHeight * 0.15,
                                   child: Shortcuts(
                                     shortcuts: _shortcuts,
                                     child: Actions(
@@ -298,6 +325,9 @@ class _HomeViewState extends State<HomeView> {
                                         // onFieldSubmitted is no longer needed as Actions handle Enter
                                         style: TextStyle(color: white),
                                         minLines: 2,
+                                        onChanged: (value) {
+                                          getsuggestions(value);
+                                        },
                                         decoration: InputDecoration(
                                           border: OutlineInputBorder(
                                             borderRadius: BorderRadius.circular(20),
