@@ -1,16 +1,23 @@
 # gpt_web
 
-A new Flutter project.
+A Flutter web application that interacts with the Gemini API.
 
-## Getting Started
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Features
 
 For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
+online documentation, which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+*   **Gemini API Integration:** Leverages the power of the Gemini API for responses.
+*   **Rate Output:** Users can rate the generated output.
+*   **Live Suggestions:** Provides live suggestions as the user types.
+
+## Screenshots
+
+![Screenshot 1](screenshots/ss1.png)
+![Screenshot 2](screenshots/ss2.png)
+![Screenshot 3](screenshots/ss3.png)
+
+## Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request.
